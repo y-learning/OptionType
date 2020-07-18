@@ -1,5 +1,3 @@
-import java.lang.RuntimeException
-
 sealed class Option<out T> {
     abstract fun isEmpty(): Boolean
 
@@ -15,6 +13,9 @@ sealed class Option<out T> {
 
     fun orElse(default: () -> Option<@UnsafeVariance T>): Option<T> =
         map { this }.getOrElse(default)
+
+    fun filter(p: (T) -> Boolean): Option<T> =
+        flatMap { x -> if (p(x)) this else None }
 
     object None : Option<Nothing>() {
         override fun isEmpty(): Boolean = true
