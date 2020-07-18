@@ -13,6 +13,9 @@ sealed class Option<out T> {
             is Some -> this.value
         }
 
+    fun orElse(default: () -> Option<@UnsafeVariance T>): Option<T> =
+        map { this }.getOrElse(default)
+
     object None : Option<Nothing>() {
         override fun isEmpty(): Boolean = true
 
