@@ -1,7 +1,13 @@
 sealed class Option<out T> {
     abstract fun isEmpty(): Boolean
 
-    internal object None : Option<Nothing>() {
+    fun getOrElse(default: @UnsafeVariance T): T =
+        when (this) {
+            None -> default
+            is Some -> this.value
+        }
+
+    object None : Option<Nothing>() {
         override fun isEmpty(): Boolean = true
 
         override fun toString(): String = "None"
@@ -28,3 +34,6 @@ sealed class Option<out T> {
 fun max(list: List<Int>): Option<Int> =
     if (list.isEmpty()) Option()
     else Option(list.max())
+
+val max1 = max(listOf(1, 2, 4, 5, 9, 5, 5, 2, 4, 3)).getOrElse(0)
+val max2 = max(listOf()).getOrElse(0)
