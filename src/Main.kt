@@ -59,6 +59,12 @@ val parseWithRadix: (Int) -> (String) -> Int = { radix ->
 
 val parseHex: (String) -> Int = parseWithRadix(16)
 
+fun <A, B, C> map2(
+    oa: Option<A>,
+    ob: Option<B>,
+    f: (A) -> (B) -> C
+): Option<C> = oa.flatMap { a -> ob.map { f(a)(it) } }
+
 fun main() {
     val fName1 = "Mickey"
     val fName2 = "Minnie"
