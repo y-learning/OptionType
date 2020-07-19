@@ -40,6 +40,14 @@ fun <A, B> lift(f: (A) -> B): (Option<A>) -> Option<B> = {
     }
 }
 
+fun <A, B> hLift(f: (A) -> B): (A) -> Option<B> = {
+    try {
+        Option(it).map(f)
+    } catch (e: Exception) {
+        Option()
+    }
+}
+
 val toUpperCaseOption: (Option<String>) -> Option<String> =
     lift(String::toUpperCase)
 
