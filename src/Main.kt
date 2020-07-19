@@ -31,6 +31,11 @@ fun variance(list: List<Double>): Option<Double> =
         })
     }
 
+fun <A, B> lift(f: (A) -> B): (Option<A>) -> Option<B> = { it.map(f) }
+
+val toUpperCaseOption: (Option<String>) -> Option<String> =
+    lift(String::toUpperCase)
+
 fun main() {
     val fName1 = "Mickey"
     val fName2 = "Minnie"
