@@ -1,3 +1,5 @@
+import kotlin.math.pow
+
 data class Toon(
     val firstName: String,
     val lastName: String,
@@ -15,6 +17,19 @@ data class Toon(
 fun <K, V> Map<K, V>.getOption(key: K) = Option(this[key])
 
 const val NO_DATA = "No data"
+
+fun mean(list: List<Double>): Option<Double> =
+    when {
+        list.isEmpty() -> Option()
+        else -> Option(list.sum() / list.size)
+    }
+
+fun variance(list: List<Double>): Option<Double> =
+    mean(list).flatMap { mean ->
+        mean(list.map {
+            (it - mean).pow(2.0)
+        })
+    }
 
 fun main() {
     val fName1 = "Mickey"
