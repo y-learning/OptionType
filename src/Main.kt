@@ -51,6 +51,14 @@ fun <A, B> hLift(f: (A) -> B): (A) -> Option<B> = {
 val toUpperCaseOption: (Option<String>) -> Option<String> =
     lift(String::toUpperCase)
 
+val parseWithRadix: (Int) -> (String) -> Int = { radix ->
+    { str ->
+        Integer.parseInt(str, radix)
+    }
+}
+
+val parseHex: (String) -> Int = parseWithRadix(16)
+
 fun main() {
     val fName1 = "Mickey"
     val fName2 = "Minnie"
