@@ -36,9 +36,8 @@ sealed class Option<out T> {
 
         override fun <U> map(f: (T) -> U): Option<U> = Some(f(value))
 
-        override fun <U> flatMap(f: (T) -> Option<U>): Option<U> =
+        override fun <U> flatMap(f  : (T) -> Option<U>): Option<U> =
             map(f).getOrElse { None }
-        // or: f(value)
     }
 
     companion object {
@@ -50,18 +49,3 @@ sealed class Option<out T> {
             }
     }
 }
-
-fun max(list: List<Int>): Option<Int> =
-    if (list.isEmpty()) Option()
-    else Option(list.max())
-
-val max1 = max(listOf(1, 2, 4, 5, 9, 5, 5, 2, 4, 3)).getOrElse { 0 }
-val max2 = max(listOf()).getOrElse { 0 }
-
-fun getDefault(): Int = throw RuntimeException()
-
-val max3 = max(listOf(4, 5, 62, 3, 7, 4, 5, 6)).getOrElse(::getDefault)
-// val max4 = max(listOf()).getOrElse(::getDefault)
-
-val max5 = max(listOf(5, 3, 8)).map { it + 1 }
-val max6 = max(listOf()).map { it + 1 }
