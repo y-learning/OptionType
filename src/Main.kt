@@ -1,3 +1,4 @@
+import java.lang.Exception
 import kotlin.math.pow
 
 data class Toon(
@@ -31,7 +32,13 @@ fun variance(list: List<Double>): Option<Double> =
         })
     }
 
-fun <A, B> lift(f: (A) -> B): (Option<A>) -> Option<B> = { it.map(f) }
+fun <A, B> lift(f: (A) -> B): (Option<A>) -> Option<B> = {
+    try {
+        it.map(f)
+    } catch (e: Exception) {
+        Option()
+    }
+}
 
 val toUpperCaseOption: (Option<String>) -> Option<String> =
     lift(String::toUpperCase)
