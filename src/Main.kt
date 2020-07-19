@@ -19,13 +19,13 @@ fun <K, V> Map<K, V>.getOption(key: K) = Option(this[key])
 
 const val NO_DATA = "No data"
 
-fun mean(list: List<Double>): Option<Double> =
+fun mean(list: kotlin.collections.List<Double>): Option<Double> =
     when {
         list.isEmpty() -> Option()
         else -> Option(list.sum() / list.size)
     }
 
-fun variance(list: List<Double>): Option<Double> =
+fun variance(list: kotlin.collections.List<Double>): Option<Double> =
     mean(list).flatMap { mean ->
         mean(list.map {
             (it - mean).pow(2.0)
@@ -64,6 +64,23 @@ fun <A, B, C> map2(
     ob: Option<B>,
     f: (A) -> (B) -> C
 ): Option<C> = oa.flatMap { a -> ob.map { f(a)(it) } }
+
+fun <A> sequence(list: List<Option<A>>): Option<List<A>> =
+    list.foldRight(Option(List())) { e: Option<A> ->
+        { y: Option<List<A>> ->
+            map2(e, y) { a: A ->
+                { b: List<A> -> b.cons(a) }
+            }
+        }
+    }
+
+// Recursive version of sequence
+fun <A> sequence2(list: List<Option<A>>): Option<List<A>> {
+    return if (list.isEmpty()) Option(List())
+    else list.first().flatMap { x: A ->
+        sequence2(list.rest()).map { it.cons(x) }
+    }
+}
 
 fun main() {
     val fName1 = "Mickey"
