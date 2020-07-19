@@ -82,6 +82,19 @@ fun <A> sequence2(list: List<Option<A>>): Option<List<A>> {
     }
 }
 
+fun <A, B> trverse(list: List<A>, f: (A) -> Option<B>): Option<List<B>> =
+    list.foldRight(Option(List())) { a: A ->
+        { optionListB: Option<List<B>> ->
+            map2(f(a), optionListB) { b ->
+                { listB: List<B> -> listB.cons(b) }
+            }
+        }
+    }
+
+
+fun <A> sequence3(list: List<Option<A>>): Option<List<A>> =
+    trverse(list) { it }
+
 fun main() {
     val fName1 = "Mickey"
     val fName2 = "Minnie"
@@ -111,4 +124,15 @@ fun main() {
     println(e1)
     println(e2)
     println(e3)
+
+    val parse16 = hLift(parseWithRadix(16))
+
+    val list = List("1", "2", "3", "4", "5", "A", "B")
+    val r1 = sequence(list.map(parse16))
+    val r2 = trverse(list, parse16)
+    val r3 = sequence3(list.map(parse16))
+
+    println(r1)
+    println(r2)
+    println(r3)
 }
