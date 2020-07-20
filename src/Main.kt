@@ -1,17 +1,24 @@
+import java.io.IOException
 import java.lang.Exception
 import kotlin.math.pow
 
-data class Toon(
+class Toon private constructor(
     val firstName: String,
     val lastName: String,
-    val email: Option<String> = Option()
+    val email: Result<String>
 ) {
     companion object {
+        operator fun invoke(firstName: String, lastName: String): Toon {
+            val message = "$firstName $lastName has no email address."
+            return Toon(firstName, lastName, Result.failure(message))
+        }
+
         operator fun invoke(
             firstName: String,
             lastName: String,
-            email: String? = null
-        ) = Toon(firstName, lastName, Option(email))
+            email: String
+        ) =
+            Toon(firstName, lastName, Result(email))
     }
 }
 
@@ -95,6 +102,22 @@ fun <A, B> trverse(list: List<A>, f: (A) -> Option<B>): Option<List<B>> =
 fun <A> sequence3(list: List<Option<A>>): Option<List<A>> =
     trverse(list) { it }
 
+fun <K, V> Map<K, V>.getResult(key: K) = when {
+    this.containsKey(key) -> Result(this[key])
+    else -> Result.failure("The key $key, is not found in the map!")
+}
+
+fun validate(name: String?): Result<String> = when {
+    name?.isNotEmpty() ?: false -> Result(name)
+    else -> Result.failure("Invalid name $name")
+}
+
+fun getName(): Result<String> = try {
+    validate(readLine())
+} catch (e: IOException) {
+    Result.failure(e)
+}
+
 fun main() {
     val fName1 = "Mickey"
     val fName2 = "Minnie"
@@ -107,35 +130,9 @@ fun main() {
         fName3 to Toon(fName3, "Duck", "donald@disney")
     )
 
-    val mickeyEmail = toons.getOption(fName1).flatMap { it.email }
-    val minnieEmail = toons.getOption(fName2).flatMap { it.email }
-    val goofyEmail = toons.getOption("Goofy").flatMap { it.email }
+    val toon = getName()
+        .flatMap(toons::getResult)
+        .flatMap(Toon::email)
 
-    println(mickeyEmail.getOrElse { NO_DATA })
-    println(minnieEmail.getOrElse { NO_DATA })
-    println(goofyEmail.getOrElse { NO_DATA })
-
-    println()
-
-    val e1 = toons[fName1]?.email ?: NO_DATA
-    val e2 = toons[fName2]?.email ?: NO_DATA
-    val e3 = toons["Goofy"]?.email ?: NO_DATA
-
-    println(e1)
-    println(e2)
-    println(e3)
-
-    val parse16 = hLift(parseWithRadix(16))
-
-    val list = List("1", "2", "3", "4", "5", "A", "B")
-    val r1 = sequence(list.map(parse16))
-    val r2 = trverse(list, parse16)
-    val r3 = sequence3(list.map(parse16))
-
-    println(r1)
-    println(r2)
-    println(r3)
-
-    // -------------------------------------------------------------------------
-    println("-----------------------------------------------------------------")
+    println(toon)
 }

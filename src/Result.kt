@@ -7,6 +7,8 @@ sealed class Result<out A> : Serializable {
 
     abstract fun <B> flatMap(f: (A) -> Result<B>): Result<B>
 
+    abstract fun toOption(): Option<A>
+
     fun getOrElse(defaultValue: @UnsafeVariance A): A =
         when (this) {
             is Failure -> defaultValue
@@ -26,8 +28,7 @@ sealed class Result<out A> : Serializable {
         }
 
     internal
-
-    class Failure<out A>(internal val exception: RuntimeException) :
+    data class Failure<out A>(internal val exception: RuntimeException) :
         Result<A>() {
 
         override fun <B> map(f: (A) -> B): Result<B> = Failure(exception)
@@ -35,11 +36,13 @@ sealed class Result<out A> : Serializable {
         override fun <B> flatMap(f: (A) -> Result<B>): Result<B> =
             Failure(exception)
 
+        override fun toOption(): Option<A> = Option()
+
         override fun toString(): String = "Failure(exception=$exception)"
     }
 
     internal
-    class Success<out A>(internal val value: A) : Result<A>() {
+    data class Success<out A>(internal val value: A) : Result<A>() {
 
         override fun <B> map(f: (A) -> B): Result<B> = try {
             Success(f(value))
@@ -56,6 +59,8 @@ sealed class Result<out A> : Serializable {
         } catch (e: Exception) {
             Failure(RuntimeException(e))
         }
+
+        override fun toOption(): Option<A> = Option(value)
 
         override fun toString(): String = "Success(value=$value)"
     }
