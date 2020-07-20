@@ -1,5 +1,5 @@
+import Result.Empty
 import java.io.IOException
-import java.lang.Exception
 import kotlin.math.pow
 
 class Toon private constructor(
@@ -8,23 +8,18 @@ class Toon private constructor(
     val email: Result<String>
 ) {
     companion object {
-        operator fun invoke(firstName: String, lastName: String): Toon {
-            val message = "$firstName $lastName has no email address."
-            return Toon(firstName, lastName, Result.failure(message))
-        }
+        operator fun invoke(firstName: String, lastName: String): Toon =
+            Toon(firstName, lastName, Empty)
 
         operator fun invoke(
             firstName: String,
             lastName: String,
             email: String
-        ) =
-            Toon(firstName, lastName, Result(email))
+        ) = Toon(firstName, lastName, Result(email))
     }
 }
 
 fun <K, V> Map<K, V>.getOption(key: K) = Option(this[key])
-
-const val NO_DATA = "No data"
 
 fun mean(list: kotlin.collections.List<Double>): Option<Double> =
     when {
@@ -104,12 +99,12 @@ fun <A> sequence3(list: List<Option<A>>): Option<List<A>> =
 
 fun <K, V> Map<K, V>.getResult(key: K) = when {
     this.containsKey(key) -> Result(this[key])
-    else -> Result.failure("The key $key, is not found in the map!")
+    else -> Empty
 }
 
 fun validate(name: String?): Result<String> = when {
     name?.isNotEmpty() ?: false -> Result(name)
-    else -> Result.failure("Invalid name $name")
+    else -> Result.failure(IOException())
 }
 
 fun getName(): Result<String> = try {

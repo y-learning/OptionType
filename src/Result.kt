@@ -7,18 +7,20 @@ sealed class Result<out A> : Serializable {
 
     abstract fun <B> flatMap(f: (A) -> Result<B>): Result<B>
 
-    abstract fun toOption(): Option<A>
+    fun getOrElse(defaultValue: @UnsafeVariance A): A = when (this) {
+        is Success -> this.value
+        else -> defaultValue
+    }
 
-    fun getOrElse(defaultValue: @UnsafeVariance A): A =
-        when (this) {
-            is Failure -> defaultValue
-            is Success -> this.value
-        }
+    fun getOrElse(defaultValue: () -> @UnsafeVariance A): A = when (this) {
+        is Success -> this.value
+        else -> defaultValue()
+    }
 
     fun orElse(defaultValue: () -> Result<@UnsafeVariance A>): Result<A> =
         when (this) {
             is Success -> this
-            is Failure -> try {
+            else -> try {
                 defaultValue()
             } catch (e: RuntimeException) {
                 Failure<A>(e)
@@ -28,6 +30,15 @@ sealed class Result<out A> : Serializable {
         }
 
     internal
+    object Empty : Result<Nothing>() {
+        override fun <B> map(f: (Nothing) -> B): Result<B> = Empty
+
+        override fun <B> flatMap(f: (Nothing) -> Result<B>): Result<B> = Empty
+
+        override fun toString(): String = "Empty"
+    }
+
+    internal
     data class Failure<out A>(internal val exception: RuntimeException) :
         Result<A>() {
 
@@ -35,8 +46,6 @@ sealed class Result<out A> : Serializable {
 
         override fun <B> flatMap(f: (A) -> Result<B>): Result<B> =
             Failure(exception)
-
-        override fun toOption(): Option<A> = Option()
 
         override fun toString(): String = "Failure(exception=$exception)"
     }
@@ -60,8 +69,6 @@ sealed class Result<out A> : Serializable {
             Failure(RuntimeException(e))
         }
 
-        override fun toOption(): Option<A> = Option(value)
-
         override fun toString(): String = "Success(value=$value)"
     }
 
@@ -71,6 +78,8 @@ sealed class Result<out A> : Serializable {
                 null -> Failure(NullPointerException())
                 else -> Success(a)
             }
+
+        operator fun <A> invoke(): Result<A> = Empty
 
         fun <A> failure(message: String): Result<A> =
             Failure(IllegalStateException(message))
