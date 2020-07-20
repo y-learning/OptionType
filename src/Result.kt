@@ -7,6 +7,8 @@ sealed class Result<out A> : Serializable {
 
     abstract fun <B> flatMap(f: (A) -> Result<B>): Result<B>
 
+    abstract fun mapFailure(errMsg: String): Result<A>
+
     fun getOrElse(defaultValue: @UnsafeVariance A): A = when (this) {
         is Success -> this.value
         else -> defaultValue
@@ -45,6 +47,8 @@ sealed class Result<out A> : Serializable {
 
         override fun <B> flatMap(f: (Nothing) -> Result<B>): Result<B> = Empty
 
+        override fun mapFailure(errMsg: String): Result<Nothing> = this
+
         override fun toString(): String = "Empty"
     }
 
@@ -56,6 +60,9 @@ sealed class Result<out A> : Serializable {
 
         override fun <B> flatMap(f: (A) -> Result<B>): Result<B> =
             Failure(exception)
+
+        override fun mapFailure(errMsg: String): Result<A> =
+            Failure(RuntimeException(errMsg, exception))
 
         override fun toString(): String = "Failure(exception=$exception)"
     }
@@ -78,6 +85,8 @@ sealed class Result<out A> : Serializable {
         } catch (e: Exception) {
             Failure(RuntimeException(e))
         }
+
+        override fun mapFailure(errMsg: String): Result<A> = this
 
         override fun toString(): String = "Success(value=$value)"
     }
