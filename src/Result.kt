@@ -37,6 +37,8 @@ sealed class Result<out A> : Serializable {
     fun filter(p: (A) -> Boolean): Result<A> =
         filter("Condition not matched.", p)
 
+    fun exists(p: (A) -> Boolean): Boolean = map(p).getOrElse(false)
+
     internal
     object Empty : Result<Nothing>() {
         override fun <B> map(f: (Nothing) -> B): Result<B> = Empty
