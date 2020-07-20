@@ -29,6 +29,14 @@ sealed class Result<out A> : Serializable {
             }
         }
 
+    fun filter(message: String, p: (A) -> Boolean): Result<A> = flatMap {
+        if (p(it)) this
+        else failure(message)
+    }
+
+    fun filter(p: (A) -> Boolean): Result<A> =
+        filter("Condition not matched.", p)
+
     internal
     object Empty : Result<Nothing>() {
         override fun <B> map(f: (Nothing) -> B): Result<B> = Empty
