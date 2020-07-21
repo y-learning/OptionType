@@ -17,7 +17,11 @@ sealed class Result<out A> : Serializable {
         f: (e: RuntimeException) -> (msg: String) -> E
     ): Result<A>
 
-    abstract fun forEach(effect: (A) -> Unit)
+    abstract fun forEach(
+        onSuccess: (A) -> Unit = {},
+        onFailure: (RuntimeException) -> Unit = {},
+        onEmpty: () -> Unit = {}
+    )
 
     fun getOrElse(defaultValue: @UnsafeVariance A): A = when (this) {
         is Success -> this.value
@@ -67,7 +71,11 @@ sealed class Result<out A> : Serializable {
         override fun mapEmpty(errMsg: String): Result<Nothing> =
             Failure(RuntimeException(errMsg))
 
-        override fun forEach(effect: (Nothing) -> Unit) {}
+        override fun forEach(
+            onSuccess: (Nothing) -> Unit,
+            onFailure: (RuntimeException) -> Unit,
+            onEmpty: () -> Unit
+        ) = onEmpty()
 
         override fun toString(): String = "Empty"
     }
@@ -91,7 +99,11 @@ sealed class Result<out A> : Serializable {
 
         override fun mapEmpty(errMsg: String): Result<A> = this
 
-        override fun forEach(effect: (A) -> Unit) {}
+        override fun forEach(
+            onSuccess: (A) -> Unit,
+            onFailure: (RuntimeException) -> Unit,
+            onEmpty: () -> Unit
+        ) = onFailure(exception)
 
         override fun toString(): String = "Failure(exception=$exception)"
     }
@@ -124,7 +136,11 @@ sealed class Result<out A> : Serializable {
 
         override fun mapEmpty(errMsg: String): Result<A> = this
 
-        override fun forEach(effect: (A) -> Unit) = effect(value)
+        override fun forEach(
+            onSuccess: (A) -> Unit,
+            onFailure: (RuntimeException) -> Unit,
+            onEmpty: () -> Unit
+        ) = onSuccess(value)
 
         override fun toString(): String = "Success(value=$value)"
     }

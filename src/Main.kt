@@ -108,8 +108,21 @@ fun validate(name: String?): Result<String> = when {
 }
 
 fun getName(): Result<String> = try {
+    println("Enter a toon name please:")
     validate(readLine())
 } catch (e: IOException) {
+    Result.failure(e)
+}
+
+fun getNumber(): Result<Int> = try {
+    println("Enter an integer please:")
+    val numberStr = readLine()
+    when {
+        numberStr?.isNotEmpty() ?: false -> Result(Integer.parseInt(numberStr))
+        else -> Result
+            .failure(NumberFormatException("Please enter a valid number!"))
+    }
+} catch (e: NumberFormatException) {
     Result.failure(e)
 }
 
@@ -130,4 +143,13 @@ fun main() {
         .flatMap(Toon::email)
 
     println(toon)
+
+    println("\n")
+
+    getNumber()
+        .flatMap { if (it % 2 == 0) Result(it) else Result() }
+        .forEach(
+            { println("$it is even.") },
+            onEmpty = { println("It's an odd number.") },
+            onFailure = { println("Please enter a valid integer: \n$it") })
 }
