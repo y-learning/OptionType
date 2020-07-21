@@ -16,6 +16,14 @@ fun <E> toList(result: Result<E>): List<E> =
 fun <E> flattenResult(list: List<Result<E>>): List<E> =
     list.flatMap(::toList)
 
+fun <E> sequence(list: List<Result<E>>): Result<List<E>> =
+    list.filter { !it.isEmpty() }
+        .foldRight(Result(List())) { item: Result<E> ->
+            { acc: Result<List<E>> ->
+                result.map2(item, acc) { a: E -> { b: List<E> -> b.cons(a) } }
+            }
+        }
+
 sealed class List<out E> {
     abstract val length: Int
 
