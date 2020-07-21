@@ -1,4 +1,5 @@
 import java.io.Serializable
+import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 import java.lang.RuntimeException
 
@@ -125,6 +126,38 @@ sealed class Result<out A> : Serializable {
             when (a) {
                 null -> Failure(NullPointerException())
                 else -> Success(a)
+            }
+
+        operator fun <A> invoke(a: A? = null, msg: String): Result<A> =
+            when (a) {
+                null -> Failure(NullPointerException(msg))
+                else -> Success(a)
+            }
+
+        operator fun <A> invoke(a: A? = null, p: (A) -> Boolean): Result<A> =
+            when (a) {
+                null -> Failure(NullPointerException())
+                else -> when {
+                    p(a) -> Success(a)
+                    else -> Empty
+                }
+            }
+
+        operator fun <A> invoke(
+            a: A? = null,
+            msg: String,
+            p: (A) -> Boolean
+        ): Result<A> =
+            when (a) {
+                null -> Failure(NullPointerException())
+                else -> when {
+                    p(a) -> Success(a)
+                    else -> Failure(
+                        IllegalArgumentException(
+                            "Argument $a does not match the condition: $msg"
+                        )
+                    )
+                }
             }
 
         operator fun <A> invoke(): Result<A> = Empty
