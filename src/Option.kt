@@ -75,7 +75,7 @@ fun <A, B, C> map2(
 ): Option<C> = oa.flatMap { a -> ob.map { f(a)(it) } }
 
 fun <A> sequence(list: List<Option<A>>): Option<List<A>> =
-    list.foldRight(Option(List<A>())) { e: Option<A> ->
+    list.foldRight(Option(List())) { e: Option<A> ->
         { y: Option<List<A>> ->
             map2(e, y) { a: A ->
                 { b: List<A> -> b.cons(a) }
@@ -83,7 +83,6 @@ fun <A> sequence(list: List<Option<A>>): Option<List<A>> =
         }
     }
 
-// Recursive version of sequence
 fun <A> sequence2(list: List<Option<A>>): Option<List<A>> {
     return if (list.isEmpty()) Option(List())
     else list.first().flatMap { x: A ->
@@ -100,5 +99,4 @@ fun <A, B> trverse(list: List<A>, f: (A) -> Option<B>): Option<List<B>> =
         }
     }
 
-fun <A> sequence3(list: List<Option<A>>): Option<List<A>> =
-    trverse(list) { it }
+fun <A> sequence3(list: List<Option<A>>): Option<List<A>> = trverse(list) { it }

@@ -14,14 +14,12 @@ sealed class Result<out A> : Serializable {
 
     abstract fun <E : RuntimeException> mapFailure(
         msg: String,
-        f: (e: RuntimeException) -> (msg: String) -> E
-    ): Result<A>
+        f: (e: RuntimeException) -> (msg: String) -> E): Result<A>
 
     abstract fun forEach(
         onSuccess: (A) -> Unit = {},
         onFailure: (RuntimeException) -> Unit = {},
-        onEmpty: () -> Unit = {}
-    )
+        onEmpty: () -> Unit = {})
 
     fun getOrElse(defaultValue: @UnsafeVariance A): A = when (this) {
         is Success -> this.value
@@ -65,8 +63,8 @@ sealed class Result<out A> : Serializable {
 
         override fun <E : RuntimeException> mapFailure(
             msg: String,
-            f: (e: RuntimeException) -> (msg: String) -> E
-        ): Result<Nothing> = this
+            f: (e: RuntimeException) -> (msg: String) -> E): Result<Nothing> =
+            this
 
         override fun mapEmpty(errMsg: String): Result<Nothing> =
             Failure(RuntimeException(errMsg))
@@ -74,8 +72,7 @@ sealed class Result<out A> : Serializable {
         override fun forEach(
             onSuccess: (Nothing) -> Unit,
             onFailure: (RuntimeException) -> Unit,
-            onEmpty: () -> Unit
-        ) = onEmpty()
+            onEmpty: () -> Unit) = onEmpty()
 
         override fun toString(): String = "Empty"
     }
@@ -91,17 +88,11 @@ sealed class Result<out A> : Serializable {
             Failure(exception)
 
         override fun mapFailure(errMsg: String): Result<A> =
-            Failure(
-                RuntimeException(
-                    errMsg,
-                    exception
-                )
-            )
+            Failure(RuntimeException(errMsg, exception))
 
         override fun <E : RuntimeException> mapFailure(
             msg: String,
-            f: (e: RuntimeException) -> (msg: String) -> E
-        ): Result<A> =
+            f: (e: RuntimeException) -> (msg: String) -> E): Result<A> =
             Failure(f(exception)(msg))
 
         override fun mapEmpty(errMsg: String): Result<A> = this
@@ -109,8 +100,7 @@ sealed class Result<out A> : Serializable {
         override fun forEach(
             onSuccess: (A) -> Unit,
             onFailure: (RuntimeException) -> Unit,
-            onEmpty: () -> Unit
-        ) = onFailure(exception)
+            onEmpty: () -> Unit) = onFailure(exception)
 
         override fun toString(): String = "Failure(exception=$exception)"
     }
@@ -138,16 +128,14 @@ sealed class Result<out A> : Serializable {
 
         override fun <E : RuntimeException> mapFailure(
             msg: String,
-            f: (e: RuntimeException) -> (msg: String) -> E
-        ): Result<A> = this
+            f: (e: RuntimeException) -> (msg: String) -> E): Result<A> = this
 
         override fun mapEmpty(errMsg: String): Result<A> = this
 
         override fun forEach(
             onSuccess: (A) -> Unit,
             onFailure: (RuntimeException) -> Unit,
-            onEmpty: () -> Unit
-        ) = onSuccess(value)
+            onEmpty: () -> Unit) = onSuccess(value)
 
         override fun toString(): String = "Success(value=$value)"
     }
@@ -155,25 +143,19 @@ sealed class Result<out A> : Serializable {
     companion object {
         operator fun <A> invoke(a: A? = null): Result<A> =
             when (a) {
-                null -> Failure(
-                    NullPointerException()
-                )
+                null -> Failure(NullPointerException())
                 else -> Success(a)
             }
 
         operator fun <A> invoke(a: A? = null, msg: String): Result<A> =
             when (a) {
-                null -> Failure(
-                    NullPointerException(msg)
-                )
+                null -> Failure(NullPointerException(msg))
                 else -> Success(a)
             }
 
         operator fun <A> invoke(a: A? = null, p: (A) -> Boolean): Result<A> =
             when (a) {
-                null -> Failure(
-                    NullPointerException()
-                )
+                null -> Failure(NullPointerException())
                 else -> when {
                     p(a) -> Success(a)
                     else -> Empty
@@ -183,40 +165,30 @@ sealed class Result<out A> : Serializable {
         operator fun <A> invoke(
             a: A? = null,
             msg: String,
-            p: (A) -> Boolean
-        ): Result<A> =
+            p: (A) -> Boolean): Result<A> =
             when (a) {
-                null -> Failure(
-                    NullPointerException()
-                )
+                null -> Failure(NullPointerException())
                 else -> when {
                     p(a) -> Success(a)
-                    else -> Failure(
-                        IllegalArgumentException(
-                            "Argument $a does not match the condition: $msg"
-                        )
-                    )
+                    else -> {
+                        val errMsg = "" +
+                                "Argument $a does not match the " +
+                                "condition: $msg"
+                        Failure(IllegalArgumentException(errMsg))
+                    }
                 }
             }
 
         operator fun <A> invoke(): Result<A> = Empty
 
         fun <A> failure(message: String): Result<A> =
-            Failure(
-                IllegalStateException(
-                    message
-                )
-            )
+            Failure(IllegalStateException(message))
 
         fun <A> failure(exception: RuntimeException): Result<A> =
             Failure(exception)
 
         fun <A> failure(exception: Exception): Result<A> =
-            Failure(
-                IllegalStateException(
-                    exception
-                )
-            )
+            Failure(IllegalStateException(exception))
     }
 }
 

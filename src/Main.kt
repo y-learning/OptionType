@@ -16,8 +16,7 @@ class Toon private constructor(
         operator fun invoke(
             firstName: String,
             lastName: String,
-            email: String
-        ) = Toon(firstName, lastName, Result(email))
+            email: String) = Toon(firstName, lastName, Result(email))
     }
 }
 
@@ -62,8 +61,7 @@ fun getNumber(): Result<Int> = try {
     val numberStr = readLine()
     when {
         numberStr?.isNotEmpty() ?: false -> Result(
-            Integer.parseInt(numberStr)
-        )
+            Integer.parseInt(numberStr))
         else -> Result
             .failure(NumberFormatException("Please enter a valid number!"))
     }
@@ -80,8 +78,7 @@ fun main() {
     val toons: Map<String, Toon> = mapOf(
         fName1 to Toon(fName1, lName1, "mickey@disney.com"),
         fName2 to Toon(fName2, lName1),
-        fName3 to Toon(fName3, "Duck", "donald@disney")
-    )
+        fName3 to Toon(fName3, "Duck", "donald@disney"))
 
     val toon = getName()
         .flatMap(toons::getResult)

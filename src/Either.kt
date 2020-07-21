@@ -11,8 +11,8 @@ sealed class Either<E, out A> {
         }
 
     fun orElse(
-        defaultValue: () -> Either<E, @UnsafeVariance A>
-    ): Either<E, @UnsafeVariance A> = map { this }.getOrElse(defaultValue)
+        defaultValue: () -> Either<E, @UnsafeVariance A>):
+            Either<E, @UnsafeVariance A> = map { this }.getOrElse(defaultValue)
 
     internal
     class Left<E, out A>(private val value: E) : Either<E, A>() {
