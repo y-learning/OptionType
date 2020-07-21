@@ -10,6 +10,12 @@ fun <T> flatten(list: List<List<T>>): List<T> =
 
 fun <E> List<E>.concat(list: List<E>) = List.concatViaFoldLeft(this, list)
 
+fun <E> toList(result: Result<E>): List<E> =
+    result.map { List(it) }.getOrElse(List())
+
+fun <E> flattenResult(list: List<Result<E>>): List<E> =
+    list.flatMap(::toList)
+
 sealed class List<out E> {
     abstract val length: Int
 
