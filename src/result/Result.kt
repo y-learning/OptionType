@@ -244,3 +244,6 @@ fun <A, B, C, D> lift3(f: (A) -> (B) -> (C) -> D):
             }
         }
     }
+
+fun <A, B, C> map2(a: Result<A>, b: Result<B>, f: (A) -> (B) -> C): Result<C> =
+    lift2(f)(a)(b)
