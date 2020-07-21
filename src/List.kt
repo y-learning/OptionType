@@ -9,9 +9,13 @@ fun <T> flatten(list: List<List<T>>): List<T> =
 fun <E> List<E>.concat(list: List<E>) = List.concatViaFoldLeft(this, list)
 
 sealed class List<out E> {
+    abstract val length: Int
+
     abstract fun isEmpty(): Boolean
 
     abstract fun length(): Int
+
+    abstract fun lengthMemoized(): Int
 
     abstract fun setHead(x: @UnsafeVariance E): List<E>
 
@@ -64,11 +68,15 @@ sealed class List<out E> {
     }
 
     abstract class Empty<E> : List<E>() {
+        override val length: Int get() = 0
+
         override fun isEmpty(): Boolean = true
 
         override fun setHead(x: E): List<E> = throw Exception(SET_HEAD_EMPTY)
 
         override fun length(): Int = 0
+
+        override fun lengthMemoized(): Int = 0
 
         override fun first(): E = throw Exception(FIRST_EMPTY)
 
@@ -81,10 +89,13 @@ sealed class List<out E> {
 
     internal class Cons<E>(private val head: E, private val tail: List<E>) :
         List<E>() {
+        override val length: Int = tail.length() + 1
 
         override fun isEmpty(): Boolean = false
 
         override fun length(): Int = foldRight(0) { ::inc }
+
+        override fun lengthMemoized(): Int = length
 
         override fun setHead(x: E): List<E> = this.tail.cons(x)
 
@@ -95,6 +106,7 @@ sealed class List<out E> {
             else toString("$acc${list.first()}, ", list.rest())
 
         override fun first(): E = this.head
+
         override fun rest(): List<E> = this.tail
     }
 
