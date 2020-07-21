@@ -1,7 +1,5 @@
+import Result.Empty
 import java.io.Serializable
-import java.lang.IllegalArgumentException
-import java.lang.IllegalStateException
-import java.lang.RuntimeException
 
 sealed class Result<out A> : Serializable {
     abstract fun <B> map(f: (A) -> B): Result<B>
@@ -195,4 +193,9 @@ sealed class Result<out A> : Serializable {
         fun <A> failure(exception: Exception): Result<A> =
             Failure(IllegalStateException(exception))
     }
+}
+
+fun <K, V> Map<K, V>.getResult(key: K) = when {
+    this.containsKey(key) -> Result(this[key])
+    else -> Empty
 }
