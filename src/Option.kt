@@ -36,7 +36,7 @@ sealed class Option<out T> {
 
         override fun <U> map(f: (T) -> U): Option<U> = Some(f(value))
 
-        override fun <U> flatMap(f  : (T) -> Option<U>): Option<U> =
+        override fun <U> flatMap(f: (T) -> Option<U>): Option<U> =
             map(f).getOrElse { None }
     }
 
@@ -49,3 +49,54 @@ sealed class Option<out T> {
             }
     }
 }
+
+fun <K, V> Map<K, V>.getOption(key: K) = Option(this[key])
+
+fun <A, B> lift(f: (A) -> B): (Option<A>) -> Option<B> = {
+    try {
+        it.map(f)
+    } catch (e: Exception) {
+        Option()
+    }
+}
+
+fun <A, B> hLift(f: (A) -> B): (A) -> Option<B> = {
+    try {
+        Option(it).map(f)
+    } catch (e: Exception) {
+        Option()
+    }
+}
+
+fun <A, B, C> map2(
+    oa: Option<A>,
+    ob: Option<B>,
+    f: (A) -> (B) -> C
+): Option<C> = oa.flatMap { a -> ob.map { f(a)(it) } }
+
+fun <A> sequence(list: List<Option<A>>): Option<List<A>> =
+    list.foldRight(Option(List())) { e: Option<A> ->
+        { y: Option<List<A>> ->
+            map2(e, y) { a: A ->
+                { b: List<A> -> b.cons(a) }
+            }
+        }
+    }
+
+fun <A> sequence2(list: List<Option<A>>): Option<List<A>> {
+    return if (list.isEmpty()) Option(List())
+    else list.first().flatMap { x: A ->
+        sequence2(list.rest()).map { it.cons(x) }
+    }
+}
+
+fun <A, B> trverse(list: List<A>, f: (A) -> Option<B>): Option<List<B>> =
+    list.foldRight(Option(List())) { a: A ->
+        { optionListB: Option<List<B>> ->
+            map2(f(a), optionListB) { b ->
+                { listB: List<B> -> listB.cons(b) }
+            }
+        }
+    }
+
+fun <A> sequence3(list: List<Option<A>>): Option<List<A>> = trverse(list) { it }

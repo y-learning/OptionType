@@ -1,3 +1,6 @@
+const val SET_HEAD_EMPTY = "setHead called on an empty list"
+const val FIRST_EMPTY = "first called on an empty list"
+
 fun inc(i: Int) = i + 1
 
 fun <T> flatten(list: List<List<T>>): List<T> =
@@ -27,8 +30,9 @@ sealed class List<out E> {
 
     fun reverse(): List<E> = Companion.reverse(invoke(), this)
 
-    fun <U> reverse2(): List<E> =
-        this.foldLeft(Nil as List<E>) { acc -> { acc.cons(it) } }
+    fun <U> reverse2(): List<E> = this.foldLeft(Nil as List<E>) { acc ->
+        { acc.cons(it) }
+    }
 
     fun init(): List<E> = reverse().drop(1).reverse()
 
@@ -57,21 +61,20 @@ sealed class List<out E> {
 
     fun <U> flatMap(f: (E) -> List<U>): List<U> = flatten(map(f))
 
-    fun filterViaFlatMap(p: (E) -> Boolean) =
-        this.flatMap { e -> if (p(e)) List(e) else Nil }
+    fun filterViaFlatMap(p: (E) -> Boolean) = this.flatMap { e ->
+        if (p(e)) List(e) else Nil
+    }
 
     abstract class Empty<E> : List<E>() {
         override fun isEmpty(): Boolean = true
 
-        override fun setHead(x: E): List<E> =
-            throw Exception("setHead called on an empty list")
+        override fun setHead(x: E): List<E> = throw Exception(SET_HEAD_EMPTY)
 
         override fun size(): Int = 0
 
         override fun length(): Int = 0
 
-        override fun first(): E =
-            throw Exception("first called on an empty list")
+        override fun first(): E = throw Exception(FIRST_EMPTY)
 
         override fun rest(): List<E> = this
 
@@ -80,10 +83,8 @@ sealed class List<out E> {
 
     internal object Nil : Empty<Nothing>()
 
-    internal class Cons<E>(
-        private val head: E,
-        private val tail: List<E>
-    ) : List<E>() {
+    internal class Cons<E>(private val head: E, private val tail: List<E>) :
+        List<E>() {
 
         override fun isEmpty(): Boolean = false
 
@@ -123,10 +124,8 @@ sealed class List<out E> {
                 else -> drop(i - 1, list.rest())
             }
 
-        private tailrec fun <E> dropWhile(
-            list: List<E>,
-            p: (E) -> Boolean
-        ): List<E> =
+        private tailrec fun <E> dropWhile(list: List<E>, p: (E) -> Boolean):
+                List<E> =
             when {
                 list.isEmpty() -> list
                 p(list.first()) -> dropWhile(list.rest(), p)
@@ -138,24 +137,22 @@ sealed class List<out E> {
             else reverse(acc.cons(list.first()), list.rest())
 
         fun <T, U> foldRight(
-            list: List<T>, identity: U,
-            f: (T) -> (U) -> U
-        ): U =
+            list: List<T>,
+            identity: U,
+            f: (T) -> (U) -> U): U =
             if (list.isEmpty()) identity
             else f(list.first())(foldRight(list.rest(), identity, f))
 
         tailrec fun <E, U> foldLeft(
             list: List<E>, acc: U,
-            f: (U) -> (E) -> U
-        ): U =
+            f: (U) -> (E) -> U): U =
             if (list.isEmpty()) acc
             else foldLeft(list.rest(), f(acc)(list.first()), f)
 
         tailrec fun <T, U> coFoldRight(
             list: List<T>,
             acc: U,
-            f: (T) -> (U) -> U
-        ): U =
+            f: (T) -> (U) -> U): U =
             if (list.isEmpty()) acc
             else coFoldRight(list.rest(), f(list.first())(acc), f)
 
