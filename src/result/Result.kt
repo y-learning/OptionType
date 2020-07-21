@@ -21,6 +21,8 @@ sealed class Result<out A> : Serializable {
         onFailure: (RuntimeException) -> Unit = {},
         onEmpty: () -> Unit = {})
 
+    abstract fun isEmpty(): Boolean
+
     fun getOrElse(defaultValue: @UnsafeVariance A): A = when (this) {
         is Success -> this.value
         else -> defaultValue
@@ -74,6 +76,8 @@ sealed class Result<out A> : Serializable {
             onFailure: (RuntimeException) -> Unit,
             onEmpty: () -> Unit) = onEmpty()
 
+        override fun isEmpty(): Boolean = true
+
         override fun toString(): String = "Empty"
     }
 
@@ -101,6 +105,8 @@ sealed class Result<out A> : Serializable {
             onSuccess: (A) -> Unit,
             onFailure: (RuntimeException) -> Unit,
             onEmpty: () -> Unit) = onFailure(exception)
+
+        override fun isEmpty(): Boolean = false
 
         override fun toString(): String = "Failure(exception=$exception)"
     }
@@ -137,6 +143,8 @@ sealed class Result<out A> : Serializable {
             onFailure: (RuntimeException) -> Unit,
             onEmpty: () -> Unit) = onSuccess(value)
 
+        override fun isEmpty(): Boolean = false
+        
         override fun toString(): String = "Success(value=$value)"
     }
 
