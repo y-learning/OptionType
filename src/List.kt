@@ -1,3 +1,5 @@
+import result.Result
+
 const val SET_HEAD_EMPTY = "setHead called on an empty list"
 const val FIRST_EMPTY = "first called on an empty list"
 
@@ -20,6 +22,8 @@ sealed class List<out E> {
     abstract fun setHead(x: @UnsafeVariance E): List<E>
 
     abstract fun first(): E
+
+    abstract fun firstSafe(): Result<E>
 
     abstract fun rest(): List<E>
 
@@ -80,6 +84,8 @@ sealed class List<out E> {
 
         override fun first(): E = throw Exception(FIRST_EMPTY)
 
+        override fun firstSafe(): Result<E> = Result()
+
         override fun rest(): List<E> = this
 
         override fun toString(): String = "[NIL]"
@@ -106,6 +112,8 @@ sealed class List<out E> {
             else toString("$acc${list.first()}, ", list.rest())
 
         override fun first(): E = this.head
+
+        override fun firstSafe(): Result<E> = Result(head)
 
         override fun rest(): List<E> = this.tail
     }
