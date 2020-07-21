@@ -1,4 +1,6 @@
-import Result.Empty
+import result.Result
+import result.Result.Empty
+import result.getResult
 import java.io.IOException
 import kotlin.math.pow
 
@@ -59,7 +61,9 @@ fun getNumber(): Result<Int> = try {
     println("Enter an integer please:")
     val numberStr = readLine()
     when {
-        numberStr?.isNotEmpty() ?: false -> Result(Integer.parseInt(numberStr))
+        numberStr?.isNotEmpty() ?: false -> Result(
+            Integer.parseInt(numberStr)
+        )
         else -> Result
             .failure(NumberFormatException("Please enter a valid number!"))
     }

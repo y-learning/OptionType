@@ -1,4 +1,6 @@
-import Result.Empty
+package result
+
+import result.Result.Empty
 import java.io.Serializable
 
 sealed class Result<out A> : Serializable {
@@ -82,18 +84,25 @@ sealed class Result<out A> : Serializable {
     data class Failure<out A>(internal val exception: RuntimeException) :
         Result<A>() {
 
-        override fun <B> map(f: (A) -> B): Result<B> = Failure(exception)
+        override fun <B> map(f: (A) -> B): Result<B> =
+            Failure(exception)
 
         override fun <B> flatMap(f: (A) -> Result<B>): Result<B> =
             Failure(exception)
 
         override fun mapFailure(errMsg: String): Result<A> =
-            Failure(RuntimeException(errMsg, exception))
+            Failure(
+                RuntimeException(
+                    errMsg,
+                    exception
+                )
+            )
 
         override fun <E : RuntimeException> mapFailure(
             msg: String,
             f: (e: RuntimeException) -> (msg: String) -> E
-        ): Result<A> = Failure(f(exception)(msg))
+        ): Result<A> =
+            Failure(f(exception)(msg))
 
         override fun mapEmpty(errMsg: String): Result<A> = this
 
@@ -146,19 +155,25 @@ sealed class Result<out A> : Serializable {
     companion object {
         operator fun <A> invoke(a: A? = null): Result<A> =
             when (a) {
-                null -> Failure(NullPointerException())
+                null -> Failure(
+                    NullPointerException()
+                )
                 else -> Success(a)
             }
 
         operator fun <A> invoke(a: A? = null, msg: String): Result<A> =
             when (a) {
-                null -> Failure(NullPointerException(msg))
+                null -> Failure(
+                    NullPointerException(msg)
+                )
                 else -> Success(a)
             }
 
         operator fun <A> invoke(a: A? = null, p: (A) -> Boolean): Result<A> =
             when (a) {
-                null -> Failure(NullPointerException())
+                null -> Failure(
+                    NullPointerException()
+                )
                 else -> when {
                     p(a) -> Success(a)
                     else -> Empty
@@ -171,7 +186,9 @@ sealed class Result<out A> : Serializable {
             p: (A) -> Boolean
         ): Result<A> =
             when (a) {
-                null -> Failure(NullPointerException())
+                null -> Failure(
+                    NullPointerException()
+                )
                 else -> when {
                     p(a) -> Success(a)
                     else -> Failure(
@@ -185,13 +202,21 @@ sealed class Result<out A> : Serializable {
         operator fun <A> invoke(): Result<A> = Empty
 
         fun <A> failure(message: String): Result<A> =
-            Failure(IllegalStateException(message))
+            Failure(
+                IllegalStateException(
+                    message
+                )
+            )
 
         fun <A> failure(exception: RuntimeException): Result<A> =
             Failure(exception)
 
         fun <A> failure(exception: Exception): Result<A> =
-            Failure(IllegalStateException(exception))
+            Failure(
+                IllegalStateException(
+                    exception
+                )
+            )
     }
 }
 
@@ -199,3 +224,5 @@ fun <K, V> Map<K, V>.getResult(key: K) = when {
     this.containsKey(key) -> Result(this[key])
     else -> Empty
 }
+
+fun <A, B> lift(f: (A) -> B): (Result<A>) -> Result<B> = { it.map(f) }
