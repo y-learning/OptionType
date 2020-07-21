@@ -17,6 +17,8 @@ sealed class Result<out A> : Serializable {
         f: (e: RuntimeException) -> (msg: String) -> E
     ): Result<A>
 
+    abstract fun forEach(effect: (A) -> Unit)
+
     fun getOrElse(defaultValue: @UnsafeVariance A): A = when (this) {
         is Success -> this.value
         else -> defaultValue
@@ -65,6 +67,8 @@ sealed class Result<out A> : Serializable {
         override fun mapEmpty(errMsg: String): Result<Nothing> =
             Failure(RuntimeException(errMsg))
 
+        override fun forEach(effect: (Nothing) -> Unit) {}
+
         override fun toString(): String = "Empty"
     }
 
@@ -86,6 +90,8 @@ sealed class Result<out A> : Serializable {
         ): Result<A> = Failure(f(exception)(msg))
 
         override fun mapEmpty(errMsg: String): Result<A> = this
+
+        override fun forEach(effect: (A) -> Unit) {}
 
         override fun toString(): String = "Failure(exception=$exception)"
     }
@@ -117,6 +123,8 @@ sealed class Result<out A> : Serializable {
         ): Result<A> = this
 
         override fun mapEmpty(errMsg: String): Result<A> = this
+
+        override fun forEach(effect: (A) -> Unit) = effect(value)
 
         override fun toString(): String = "Success(value=$value)"
     }
