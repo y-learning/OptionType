@@ -11,8 +11,6 @@ fun <E> List<E>.concat(list: List<E>) = List.concatViaFoldLeft(this, list)
 sealed class List<out E> {
     abstract fun isEmpty(): Boolean
 
-    abstract fun size(): Int
-
     abstract fun length(): Int
 
     abstract fun setHead(x: @UnsafeVariance E): List<E>
@@ -70,8 +68,6 @@ sealed class List<out E> {
 
         override fun setHead(x: E): List<E> = throw Exception(SET_HEAD_EMPTY)
 
-        override fun size(): Int = 0
-
         override fun length(): Int = 0
 
         override fun first(): E = throw Exception(FIRST_EMPTY)
@@ -87,14 +83,6 @@ sealed class List<out E> {
         List<E>() {
 
         override fun isEmpty(): Boolean = false
-
-        override fun size(): Int {
-            tailrec fun sizeIter(count: Int, list: List<E>): Int =
-                if (list.isEmpty()) count
-                else sizeIter(count + 1, list.rest())
-
-            return sizeIter(0, this)
-        }
 
         override fun length(): Int = foldRight(0) { ::inc }
 
