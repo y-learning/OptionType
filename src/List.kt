@@ -27,6 +27,8 @@ sealed class List<out E> {
 
     abstract fun rest(): List<E>
 
+    abstract fun lastSafe(): Result<E>
+
     fun cons(x: @UnsafeVariance E): List<E> = Cons(x, this)
 
     fun drop(n: Int): List<E> = Companion.drop(n, this)
@@ -88,6 +90,8 @@ sealed class List<out E> {
 
         override fun rest(): List<E> = this
 
+        override fun lastSafe(): Result<E> = Result()
+
         override fun toString(): String = "[NIL]"
     }
 
@@ -105,8 +109,6 @@ sealed class List<out E> {
 
         override fun setHead(x: E): List<E> = this.tail.cons(x)
 
-        override fun toString(): String = "[${toString("", this)}NIL]"
-
         private tailrec fun toString(acc: String, list: List<E>): String =
             if (list.isEmpty()) acc
             else toString("$acc${list.first()}, ", list.rest())
@@ -116,6 +118,11 @@ sealed class List<out E> {
         override fun firstSafe(): Result<E> = Result(head)
 
         override fun rest(): List<E> = this.tail
+
+        override fun lastSafe(): Result<E> =
+            foldLeft(Result()) { { item -> Result(item) } }
+
+        override fun toString(): String = "[${toString("", this)}NIL]"
     }
 
     companion object {
