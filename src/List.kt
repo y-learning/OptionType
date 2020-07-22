@@ -51,7 +51,7 @@ fun <E, T, U> product(l1: List<E>, l2: List<T>, f: (E) -> (T) -> U): List<U> =
     l1.flatMap { e: E -> l2.map { t: T -> f(e)(t) } }
 
 fun <T, U> unzip(list: List<Pair<T, U>>): Pair<List<T>, List<U>> =
-    list.foldRight(Pair(List(), List())) { pair: Pair<T, U> ->
+    list.coFoldRight(Pair(List(), List())) { pair: Pair<T, U> ->
         { acc: Pair<List<T>, List<U>> ->
             Pair(acc.first.cons(pair.first), acc.second.cons(pair.second))
         }
