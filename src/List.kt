@@ -47,6 +47,9 @@ fun <E, T, U> zipWith(l1: List<E>, l2: List<T>, f: (E) -> (T) -> U): List<U> {
     return zipWithIter(l1, l2, List()).reverse2<U>()
 }
 
+fun <E, T, U> product(l1: List<E>, l2: List<T>, f: (E) -> (T) -> U): List<U> =
+    l1.flatMap { e: E -> l2.map { t: T -> f(e)(t) } }
+
 sealed class List<out E> {
     abstract val length: Int
 
