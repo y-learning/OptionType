@@ -119,8 +119,9 @@ sealed class List<out E> {
     fun <E1, E2> unzip(f: (E) -> Pair<E1, E2>): Pair<List<E1>, List<E2>> =
         coFoldRight(Pair(Nil, Nil)) { e: E ->
             { acc: Pair<List<E1>, List<E2>> ->
-                val pair = f(e)
-                Pair(acc.first.cons(pair.first), acc.second.cons(pair.second))
+                f(e).let {
+                    Pair(acc.first.cons(it.first), acc.second.cons(it.second))
+                }
             }
         }
 
