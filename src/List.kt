@@ -72,6 +72,8 @@ sealed class List<out E> {
 
     abstract fun lastSafe(): Result<E>
 
+    abstract fun getAt(index: Int): Result<E>
+
     fun cons(x: @UnsafeVariance E): List<E> = Cons(x, this)
 
     fun drop(n: Int): List<E> = Companion.drop(n, this)
@@ -144,6 +146,9 @@ sealed class List<out E> {
 
         override fun lastSafe(): Result<E> = Result()
 
+        override fun getAt(index: Int): Result<E> =
+            Result.failure("getAt called on an empty list.")
+
         override fun toString(): String = "[NIL]"
     }
 
@@ -174,6 +179,30 @@ sealed class List<out E> {
         override fun lastSafe(): Result<E> =
             foldLeft(Result()) { { item -> Result(item) } }
 
+        override fun getAt(index: Int): Result<E> {
+            if (index < 0 || index >= length)
+                return Result.failure("Index out of bound")
+
+            tailrec fun getAtIter(list: List<E>, acc: Int): Result<E> =
+                when (acc) {
+                    0 -> Result(list.first())
+                    else -> getAtIter(list.rest(), acc - 1)
+                }
+
+            return getAtIter(this, index)
+        }
+
+//        override fun getAt(index: Int): Result<E> =
+//            Pair(Result.failure<E>("Index out of bound"), index).let {
+//                if (index < 0 || index >= length) it
+//                else foldLeft(it) { pair: Pair<Result<E>, Int> ->
+//                    { e: E ->
+//                        if (pair.second < 0) pair
+//                        else Pair(Result(e), index - 1)
+//                    }
+//                }
+//            }.first
+
         override fun toString(): String = "[${toString("", this)}NIL]"
     }
 
@@ -199,7 +228,9 @@ sealed class List<out E> {
                 else -> list
             }
 
-        private tailrec fun <E> reverse(acc: List<E>, list: List<E>): List<E> =
+        private tailrec fun <E> reverse(
+            acc: List<E>,
+            list: List<E>): List<E> =
             if (list.isEmpty()) acc
             else reverse(acc.cons(list.first()), list.rest())
 
@@ -223,7 +254,9 @@ sealed class List<out E> {
             if (list.isEmpty()) acc
             else coFoldRight(list.rest(), f(list.first())(acc), f)
 
-        fun <T> concatViaFoldRight(list1: List<T>, list2: List<T>): List<T> =
+        fun <T> concatViaFoldRight(
+            list1: List<T>,
+            list2: List<T>): List<T> =
             list1.foldRight(list2, { x -> { y -> y.cons(x) } })
 
         fun <T> concatViaFoldLeft(list1: List<T>, list2: List<T>): List<T> =
