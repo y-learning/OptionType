@@ -34,6 +34,19 @@ fun <E, U> traverse(list: List<E>, f: (E) -> Result<U>): Result<List<U>> =
 fun <E> sequence2(list: List<Result<E>>): Result<List<E>> =
     traverse(list) { x: Result<E> -> x }
 
+fun <E, T, U> zipWith(l1: List<E>, l2: List<T>, f: (E) -> (T) -> U): List<U> {
+
+    tailrec fun zipWithIter(l1: List<E>, l2: List<T>, acc: List<U>): List<U> {
+        if (l1.isEmpty() || l2.isEmpty()) return acc
+
+        val zip = f(l1.first())(l2.first())
+
+        return zipWithIter(l1.rest(), l2.rest(), acc.cons(zip))
+    }
+
+    return zipWithIter(l1, l2, List()).reverse2<U>()
+}
+
 sealed class List<out E> {
     abstract val length: Int
 
