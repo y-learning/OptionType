@@ -120,6 +120,14 @@ sealed class List<out E> {
         if (p(e)) List(e) else Nil
     }
 
+    fun <E1, E2> unzip(f: (E) -> Pair<E1, E2>): Pair<List<E1>, List<E2>> =
+        coFoldRight(Pair(Nil, Nil)) { e: E ->
+            { acc: Pair<List<E1>, List<E2>> ->
+                val pair = f(e)
+                Pair(acc.first.cons(pair.first), acc.second.cons(pair.second))
+            }
+        }
+
     abstract class Empty<E> : List<E>() {
         override val length: Int get() = 0
 
