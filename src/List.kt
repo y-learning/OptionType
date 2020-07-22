@@ -24,6 +24,16 @@ fun <E> sequence(list: List<Result<E>>): Result<List<E>> =
             }
         }
 
+fun <E, U> traverse(list: List<E>, f: (E) -> Result<U>): Result<List<U>> =
+    list.coFoldRight(Result(List())) { item: E ->
+        { acc: Result<List<U>> ->
+            result.map2(acc, f(item)) { a: List<U> -> { b: U -> a.cons(b) } }
+        }
+    }
+
+fun <E> sequence2(list: List<Result<E>>): Result<List<E>> =
+    traverse(list) { x: Result<E> -> x }
+
 sealed class List<out E> {
     abstract val length: Int
 
