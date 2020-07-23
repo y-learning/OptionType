@@ -81,6 +81,10 @@ sealed class List<out E> {
 
     abstract fun splitAt(index: Int): Pair<List<E>, List<E>>
 
+    abstract fun startWith(sub: List<@UnsafeVariance E>): Boolean
+
+    abstract fun hasSublist(list: List<@UnsafeVariance E>): Boolean
+
     fun cons(x: @UnsafeVariance E): List<E> = Cons(x, this)
 
     fun drop(n: Int): List<E> = Companion.drop(n, this)
@@ -164,6 +168,10 @@ sealed class List<out E> {
         override fun splitAt(index: Int): Pair<List<E>, List<E>> =
             Pair(this, this)
 
+        override fun startWith(sub: List<E>): Boolean = false
+
+        override fun hasSublist(list: List<E>): Boolean = false
+
         override fun toString(): String = "[NIL]"
     }
 
@@ -232,6 +240,31 @@ sealed class List<out E> {
             }
 
             return Pair(fold.second.reverse(), fold.first)
+        }
+
+        override fun startWith(sub: List<E>): Boolean {
+            tailrec fun startWith(list: List<E>, sub: List<E>): Boolean = when {
+                sub.isEmpty() -> true
+                list.first() == sub.first() -> startWith(
+                    list.rest(),
+                    sub.rest())
+                else -> false
+            }
+
+            return startWith(this, sub)
+        }
+
+        override fun hasSublist(list: List<E>): Boolean {
+            if (list.length > length) return false
+
+            tailrec fun hasSublistIter(list: List<E>, sub: List<E>): Boolean =
+                when {
+                    list.isEmpty() -> false
+                    list.startWith(sub) -> true
+                    else -> hasSublistIter(list.rest(), sub)
+                }
+
+            return hasSublistIter(this, list)
         }
 
         override fun toString(): String = "[${toString("", this)}NIL]"
