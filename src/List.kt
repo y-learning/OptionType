@@ -216,22 +216,22 @@ sealed class List<out E> {
             }.first
 
         override fun splitAt(index: Int): Pair<List<E>, List<E>> {
-            tailrec fun splitAtIter(
-                acc: List<E>,
-                list: List<E>, i: Int): Pair<List<E>, List<E>> =
-                if (i == index)
-                    when {
-                        acc.isEmpty() -> Pair(list, acc)
-                        else -> Pair(acc.reverse(), list)
-                    }
-                else
-                    splitAtIter(acc.cons(list.first()), list.rest(), inc(i))
+            val identity = Triple<List<E>, List<E>, Int>(this, Nil, 0)
 
-            return when {
-                index < 0 -> splitAt(0)
-                index > length -> Pair(this, Nil)
-                else -> splitAtIter(Nil, this, 0)
+            if (index <= 0 || index >= length)
+                return Pair(identity.first, identity.second)
+
+            val fold = foldLeft(identity, { triple -> triple.third == index })
+            { triple ->
+                { e: E ->
+                    val list = triple.first.rest()
+                    val acc = triple.second.cons(e)
+
+                    Triple(list, acc, inc(triple.third))
+                }
             }
+
+            return Pair(fold.second.reverse(), fold.first)
         }
 
         override fun toString(): String = "[${toString("", this)}NIL]"
