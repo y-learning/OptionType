@@ -74,6 +74,11 @@ sealed class List<out E> {
 
     abstract fun getAt(index: Int): Result<E>
 
+    abstract fun <U> foldLeft(
+        identity: U,
+        p: (U) -> Boolean,
+        f: (U) -> (E) -> U): U
+
     fun cons(x: @UnsafeVariance E): List<E> = Cons(x, this)
 
     fun drop(n: Int): List<E> = Companion.drop(n, this)
@@ -149,6 +154,11 @@ sealed class List<out E> {
         override fun getAt(index: Int): Result<E> =
             Result.failure("getAt called on an empty list.")
 
+        override fun <U> foldLeft(
+            identity: U,
+            p: (U) -> Boolean,
+            f: (U) -> (E) -> U): U = identity
+
         override fun toString(): String = "[NIL]"
     }
 
@@ -179,32 +189,26 @@ sealed class List<out E> {
         override fun lastSafe(): Result<E> =
             foldLeft(Result()) { { item -> Result(item) } }
 
-        override fun getAt(index: Int): Result<E> {
-            if (index < 0 || index >= length)
-                return Result.failure("Index out of bound")
+        override fun <U> foldLeft(
+            identity: U,
+            p: (U) -> Boolean,
+            f: (U) -> (E) -> U): U {
+            tailrec fun foldLeftIter(list: List<E>, acc: U): U {
+                return if (p(acc)) acc
+                else foldLeftIter(list.rest(), f(acc)(list.first()))
+            }
 
-            tailrec fun getAtIter(list: List<E>, acc: Int): Result<E> =
-                when (acc) {
-                    0 -> Result(list.first())
-                    else -> getAtIter(list.rest(), acc - 1)
-                }
-
-            return getAtIter(this, index)
+            return foldLeftIter(this, identity)
         }
-
-//        override fun getAt(index: Int): Result<E> =
-//            Pair(Result.failure<E>("Index out of bound"), index).let {
-//                if (index < 0 || index >= length()) it
-//                else
-//                    foldLeft(it) { pair: Pair<Result<E>, Int> ->
-//                        { e: E ->
-//                            if (pair.second < 0)
-//                                pair
-//                            else
-//                                Pair(Result(e), pair.second - 1)
-//                        }
-//                    }
-//            }.first
+        
+        override fun getAt(index: Int): Result<E> =
+            Pair(Result.failure<E>("Index out of bound"), index).let {
+                if (index < 0 || index >= length()) it
+                else
+                    foldLeft(it, { pair -> pair.second < 0 }) { pair ->
+                        { e: E -> Pair(Result(e), pair.second - 1) }
+                    }
+            }.first
 
         override fun toString(): String = "[${toString("", this)}NIL]"
     }
