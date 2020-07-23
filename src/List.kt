@@ -79,6 +79,8 @@ sealed class List<out E> {
         p: (U) -> Boolean,
         f: (U) -> (E) -> U): U
 
+    abstract fun splitAt(index: Int): Pair<List<E>, List<E>>
+
     fun cons(x: @UnsafeVariance E): List<E> = Cons(x, this)
 
     fun drop(n: Int): List<E> = Companion.drop(n, this)
@@ -159,6 +161,9 @@ sealed class List<out E> {
             p: (U) -> Boolean,
             f: (U) -> (E) -> U): U = identity
 
+        override fun splitAt(index: Int): Pair<List<E>, List<E>> =
+            Pair(this, this)
+
         override fun toString(): String = "[NIL]"
     }
 
@@ -200,7 +205,7 @@ sealed class List<out E> {
 
             return foldLeftIter(this, identity)
         }
-        
+
         override fun getAt(index: Int): Result<E> =
             Pair(Result.failure<E>("Index out of bound"), index).let {
                 if (index < 0 || index >= length()) it
@@ -209,6 +214,25 @@ sealed class List<out E> {
                         { e: E -> Pair(Result(e), pair.second - 1) }
                     }
             }.first
+
+        override fun splitAt(index: Int): Pair<List<E>, List<E>> {
+            tailrec fun splitAtIter(
+                acc: List<E>,
+                list: List<E>, i: Int): Pair<List<E>, List<E>> =
+                if (i == index)
+                    when {
+                        acc.isEmpty() -> Pair(list, acc)
+                        else -> Pair(acc.reverse(), list)
+                    }
+                else
+                    splitAtIter(acc.cons(list.first()), list.rest(), inc(i))
+
+            return when {
+                index < 0 -> splitAt(0)
+                index > length -> Pair(this, Nil)
+                else -> splitAtIter(Nil, this, 0)
+            }
+        }
 
         override fun toString(): String = "[${toString("", this)}NIL]"
     }
