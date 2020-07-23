@@ -194,13 +194,16 @@ sealed class List<out E> {
 
 //        override fun getAt(index: Int): Result<E> =
 //            Pair(Result.failure<E>("Index out of bound"), index).let {
-//                if (index < 0 || index >= length) it
-//                else foldLeft(it) { pair: Pair<Result<E>, Int> ->
-//                    { e: E ->
-//                        if (pair.second < 0) pair
-//                        else Pair(Result(e), index - 1)
+//                if (index < 0 || index >= length()) it
+//                else
+//                    foldLeft(it) { pair: Pair<Result<E>, Int> ->
+//                        { e: E ->
+//                            if (pair.second < 0)
+//                                pair
+//                            else
+//                                Pair(Result(e), pair.second - 1)
+//                        }
 //                    }
-//                }
 //            }.first
 
         override fun toString(): String = "[${toString("", this)}NIL]"
