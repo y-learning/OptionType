@@ -53,6 +53,13 @@ fun <E, T, U> product(l1: List<E>, l2: List<T>, f: (E) -> (T) -> U): List<U> =
 fun <T, U> unzip(list: List<Pair<T, U>>): Pair<List<T>, List<U>> =
     list.unzip { it }
 
+fun <T, S> unfoldRec(
+    s: S,
+    f: (S) -> Option<Pair<@UnsafeVariance T, S>>): List<T> =
+    f(s).map { pair: Pair<T, S> ->
+        unfoldRec(pair.second, f).cons(pair.first)
+    }.getOrElse { List.Nil }
+
 sealed class List<out E> {
     abstract val length: Int
 
