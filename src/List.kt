@@ -85,6 +85,8 @@ sealed class List<out E> {
 
     abstract fun hasSublist(list: List<@UnsafeVariance E>): Boolean
 
+    abstract fun <T> groupBy(f: (E) -> T): Map<T, List<E>>
+
     fun cons(x: @UnsafeVariance E): List<E> = Cons(x, this)
 
     fun drop(n: Int): List<E> = Companion.drop(n, this)
@@ -171,6 +173,8 @@ sealed class List<out E> {
         override fun startWith(sub: List<E>): Boolean = false
 
         override fun hasSublist(list: List<E>): Boolean = false
+
+        override fun <T> groupBy(f: (E) -> T): Map<T, List<E>> = mapOf()
 
         override fun toString(): String = "[NIL]"
     }
@@ -266,6 +270,15 @@ sealed class List<out E> {
 
             return hasSublistIter(this, list)
         }
+
+        override fun <T> groupBy(f: (E) -> T): Map<T, List<E>> =
+            reverse().foldLeft(mapOf()) { map: Map<T, List<E>> ->
+                { e: E ->
+                    f(e).let {
+                        map + (it to map.getOrDefault(it, Nil).cons(e))
+                    }
+                }
+            }
 
         override fun toString(): String = "[${toString("", this)}NIL]"
     }
