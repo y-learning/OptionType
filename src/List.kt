@@ -173,6 +173,13 @@ sealed class List<out E> {
     fun exists(p: (E) -> Boolean): Boolean =
         foldLeft(identity = false, zero = true) { { e: E -> p(e) } }
 
+    fun forAll(p: (E) -> Boolean): Boolean = !exists { e: E -> !p(e) }
+
+//    fun forAll(p: (E) -> Boolean): Boolean =
+//        foldLeft(identity = true, zero = false) { acc: Boolean ->
+//            { e: E -> acc && p(e) }
+//        }
+
     abstract class Empty<E> : List<E>() {
         override val length: Int get() = 0
 
