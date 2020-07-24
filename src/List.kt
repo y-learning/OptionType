@@ -117,6 +117,8 @@ sealed class List<out E> {
 
     abstract fun <T> groupBy(f: (E) -> T): Map<T, List<E>>
 
+    abstract fun splitListAt(index: Int): List<List<E>>
+
     fun cons(x: @UnsafeVariance E): List<E> = Cons(x, this)
 
     fun drop(n: Int): List<E> = Companion.drop(n, this)
@@ -218,6 +220,8 @@ sealed class List<out E> {
         override fun hasSublist(list: List<E>): Boolean = false
 
         override fun <T> groupBy(f: (E) -> T): Map<T, List<E>> = mapOf()
+
+        override fun splitListAt(index: Int): List<List<E>> = List(this)
 
         override fun toString(): String = "[NIL]"
     }
@@ -340,6 +344,20 @@ sealed class List<out E> {
                     }
                 }
             }
+
+        override fun splitListAt(index: Int): List<List<E>> {
+            if (index < 0 || index > length)
+                return List(this)
+
+            tailrec fun splitIter(acc: List<E>, list: List<E>, i: Int):
+                    List<List<E>> =
+                if (i == index)
+                    List(acc.reverse(), list)
+                else
+                    splitIter(acc.cons(list.first()), list.rest(), inc(i))
+
+            return splitIter(Nil, this, 0)
+        }
 
         override fun toString(): String = "[${toString("", this)}NIL]"
     }
