@@ -60,6 +60,21 @@ fun <T, S> unfoldRec(
         unfoldRec(pair.second, f).cons(pair.first)
     }.getOrElse { List.Nil }
 
+fun <T, S> unfoldCoRec(
+    s: S,
+    nextVal: (S) -> Option<Pair<@UnsafeVariance T, S>>): List<T> {
+    tailrec fun unfoldCoRecIter(acc: List<T>, s1: S): List<T> =
+        when (val next = nextVal(s1)) {
+            Option.None -> acc
+            is Option.Some -> {
+                val pair = next.value
+                unfoldCoRecIter(acc.cons(pair.first), pair.second)
+            }
+        }
+
+    return unfoldCoRecIter(List(), s).reverse()
+}
+
 sealed class List<out E> {
     abstract val length: Int
 
