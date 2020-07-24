@@ -107,6 +107,8 @@ sealed class List<out E> {
         p: (U) -> Boolean,
         f: (U) -> (E) -> U): U
 
+    abstract fun <U> foldLeft(identity: U, zero: U, f: (U) -> (E) -> U): U
+
     abstract fun splitAt(index: Int): Pair<List<E>, List<E>>
 
     abstract fun startWith(sub: List<@UnsafeVariance E>): Boolean
@@ -195,6 +197,9 @@ sealed class List<out E> {
             p: (U) -> Boolean,
             f: (U) -> (E) -> U): U = identity
 
+        override fun <U> foldLeft(identity: U, zero: U, f: (U) -> (E) -> U): U =
+            identity
+
         override fun splitAt(index: Int): Pair<List<E>, List<E>> =
             Pair(this, this)
 
@@ -246,11 +251,29 @@ sealed class List<out E> {
             return foldLeftIter(this, identity)
         }
 
+        override fun <U> foldLeft(identity: U, zero: U, f: (U) -> (E) -> U): U {
+            fun <U> foldLeft(
+                acc: U,
+                zero: U,
+                list: List<E>,
+                f: (U) -> (E) -> U): U =
+                when (list) {
+                    is Cons ->
+                        if (acc == zero) acc
+                        else foldLeft(f(acc)(list.head), zero, list.tail, f)
+                    else -> acc
+                }
+
+            return foldLeft(identity, zero, this, f)
+        }
+
         override fun getAt(index: Int): Result<E> =
             Pair(Result.failure<E>("Index out of bound"), index).let {
                 if (index < 0 || index >= length()) it
                 else
-                    foldLeft(it, { pair -> pair.second < 0 }) { pair ->
+                    foldLeft<Pair<Result<E>, Int>>(it, { pair ->
+                        pair.second < 0
+                    }) { pair ->
                         { e: E -> Pair(Result(e), pair.second - 1) }
                     }
             }.first
@@ -261,8 +284,8 @@ sealed class List<out E> {
             if (index <= 0 || index >= length)
                 return Pair(identity.first, identity.second)
 
-            val fold = foldLeft(identity, { triple -> triple.third == index })
-            { triple ->
+            val fold = foldLeft<Triple<List<E>, List<E>, Int>>(identity,
+                { triple -> triple.third == index }) { triple ->
                 { e: E ->
                     val list = triple.first.rest()
                     val acc = triple.second.cons(e)
