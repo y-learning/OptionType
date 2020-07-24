@@ -62,17 +62,18 @@ fun <T, S> unfoldRec(
 
 fun <T, S> unfoldCoRec(
     s: S,
-    nextVal: (S) -> Option<Pair<@UnsafeVariance T, S>>): List<T> {
-    tailrec fun unfoldCoRecIter(acc: List<T>, s1: S): List<T> =
+    nextVal: (S) -> Result<Pair<@UnsafeVariance T, S>>): Result<List<T>> {
+    tailrec fun unfoldCoRecIter(acc: List<T>, s1: S): Result<List<T>> =
         when (val next = nextVal(s1)) {
-            Option.None -> acc
-            is Option.Some -> {
+            Result.Empty -> Result(acc)
+            is Result.Failure -> Result.failure(next.exception)
+            is Result.Success -> {
                 val pair = next.value
                 unfoldCoRecIter(acc.cons(pair.first), pair.second)
             }
         }
 
-    return unfoldCoRecIter(List(), s).reverse()
+    return unfoldCoRecIter(List(), s).map(List<T>::reverse)
 }
 
 sealed class List<out E> {
