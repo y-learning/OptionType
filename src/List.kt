@@ -76,6 +76,11 @@ fun <T, S> unfoldCoRec(
     return unfoldCoRecIter(List(), s).map(List<T>::reverse)
 }
 
+fun range(start: Int, end: Int): Result<List<Int>> = unfoldCoRec(start) {
+    if (it < end) Result(Pair(it, it + 1))
+    else Result()
+}
+
 sealed class List<out E> {
     abstract val length: Int
 
