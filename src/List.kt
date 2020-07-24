@@ -1,4 +1,7 @@
 import result.Result
+import java.lang.RuntimeException
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
 
 const val SET_HEAD_EMPTY = "setHead called on an empty list"
 const val FIRST_EMPTY = "first called on an empty list"
@@ -183,6 +186,30 @@ sealed class List<out E> {
 //        foldLeft(identity = true, zero = false) { acc: Boolean ->
 //            { e: E -> acc && p(e) }
 //        }
+
+    fun <U> parFoldLeft(
+        es: ExecutorService,
+        identity: U,
+        f: (U) -> (E) -> U,
+        g: (U) -> (U) -> U): Result<U> =
+        try {
+            val result = divide(1024)
+                .map { list: List<E> ->
+                    es.submit<U> { list.foldLeft(identity, f) }
+                }.map<U> { future ->
+                    try {
+                        future.get()
+                    } catch (e: InterruptedException) {
+                        throw RuntimeException(e)
+                    } catch (e: ExecutionException) {
+                        throw RuntimeException(e)
+                    }
+                }
+            Result(result.foldLeft(identity, g))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+
 
     abstract class Empty<E> : List<E>() {
         override val length: Int get() = 0
