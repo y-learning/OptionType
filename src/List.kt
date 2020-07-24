@@ -119,6 +119,8 @@ sealed class List<out E> {
 
     abstract fun splitListAt(index: Int): List<List<E>>
 
+    abstract fun divide(depth: Int): List<List<E>>
+
     fun cons(x: @UnsafeVariance E): List<E> = Cons(x, this)
 
     fun drop(n: Int): List<E> = Companion.drop(n, this)
@@ -222,6 +224,8 @@ sealed class List<out E> {
         override fun <T> groupBy(f: (E) -> T): Map<T, List<E>> = mapOf()
 
         override fun splitListAt(index: Int): List<List<E>> = List(this)
+
+        override fun divide(depth: Int): List<List<E>> = Nil
 
         override fun toString(): String = "[NIL]"
     }
@@ -357,6 +361,17 @@ sealed class List<out E> {
                     splitIter(acc.cons(list.first()), list.rest(), inc(i))
 
             return splitIter(Nil, this, 0)
+        }
+
+        override fun divide(depth: Int): List<List<E>> {
+            tailrec
+            fun divideIter(acc: List<List<E>>, steps: Int): List<List<E>> =
+                if (steps == depth || acc.first().length < 2) acc
+                else divideIter(
+                    acc.flatMap { it.splitListAt(it.length / 2) },
+                    inc(steps))
+
+            return divideIter(List(this), 0)
         }
 
         override fun toString(): String = "[${toString("", this)}NIL]"
