@@ -265,7 +265,7 @@ sealed class List<out E> {
 
         override fun isEmpty(): Boolean = false
 
-        override fun length(): Int = foldRight(0) { ::inc }
+        override fun length(): Int = foldLeft(0) { i: Int -> { inc(i) } }
 
         override fun lengthMemoized(): Int = length
 
