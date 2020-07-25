@@ -193,7 +193,7 @@ sealed class List<out E> {
         f: (U) -> (E) -> U,
         g: (U) -> (U) -> U): Result<U> =
         try {
-            val result = divide(1024)
+            val result = divide(6)
                 .map { list: List<E> ->
                     es.submit<U> { list.foldLeft(identity, f) }
                 }.map<U> { future ->
