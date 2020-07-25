@@ -210,6 +210,24 @@ sealed class List<out E> {
             Result.failure(e)
         }
 
+    fun <U> parMap(es: ExecutorService, g: (E) -> U): Result<List<U>> =
+        try {
+            val result = map { e: E ->
+                es.submit<U> { g(e) }
+            }.map<U> { future ->
+                try {
+                    future.get()
+                } catch (e: InterruptedException) {
+                    throw RuntimeException(e)
+                } catch (e: ExecutionException) {
+                    throw RuntimeException(e)
+                }
+            }
+
+            Result(result)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
 
     abstract class Empty<E> : List<E>() {
         override val length: Int get() = 0
