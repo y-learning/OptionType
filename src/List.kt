@@ -306,9 +306,11 @@ sealed class List<out E> {
             identity: U,
             p: (U) -> Boolean,
             f: (U) -> (E) -> U): U {
-            tailrec fun foldLeftIter(list: List<E>, acc: U): U {
-                return if (p(acc)) acc
-                else foldLeftIter(list.rest(), f(acc)(list.first()))
+            tailrec fun foldLeftIter(list: List<E>, acc: U): U = when (list) {
+                is Cons ->
+                    if (p(acc)) acc
+                    else foldLeftIter(list.rest(), f(acc)(list.first()))
+                else -> acc
             }
 
             return foldLeftIter(this, identity)
